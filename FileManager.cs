@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 
 namespace FileManager
@@ -10,53 +11,79 @@ namespace FileManager
     //            Exception definitions
     //===========================================
     /// <summary>
-    /// Exception that is called when file has wrong extension.
+    ///     Exception that is called when file has wrong extension.
     /// </summary>
     public class ExtensionException : Exception
     {
-        public ExtensionException() { }
-        public ExtensionException(string message) : base(message) { }
-        public ExtensionException(string message, Exception inner) : base(message, inner) { }
+        public ExtensionException()
+        {
+        }
+
+        public ExtensionException(string message) : base(message)
+        {
+        }
+
+        public ExtensionException(string message, Exception inner) : base(message, inner)
+        {
+        }
     }
+
     /// <summary>
-    /// Exception that is called when copy operation is used on a folder.
+    ///     Exception that is called when copy operation is used on a folder.
     /// </summary>
     public class CopyFolderException : Exception
     {
-        public CopyFolderException() { }
-        public CopyFolderException(string message) : base(message) { }
-        public CopyFolderException(string message, Exception inner) : base(message, inner) { }
+        public CopyFolderException()
+        {
+        }
+
+        public CopyFolderException(string message) : base(message)
+        {
+        }
+
+        public CopyFolderException(string message, Exception inner) : base(message, inner)
+        {
+        }
     }
+
     /// <summary>
-    /// Exception that is called when any operation is used on a folder.
+    ///     Exception that is called when any operation is used on a folder.
     /// </summary>
     public class FolderFileException : Exception
     {
-        public FolderFileException() { }
-        public FolderFileException(string message) : base(message) { }
-        public FolderFileException(string message, Exception inner) : base(message, inner) { }
+        public FolderFileException()
+        {
+        }
+
+        public FolderFileException(string message) : base(message)
+        {
+        }
+
+        public FolderFileException(string message, Exception inner) : base(message, inner)
+        {
+        }
     }
 
-    class FileManager
+    internal class FileManager
     {
-        // Current folder path.
-        private DirectoryInfo _root;
+        private readonly string[] _readableExtensions = { "txt", "cs", "cpp", "py", "js", "html", "css", "rtf" };
 
         // Drawer Engine instance.
         private Drawer _drawer;
-        
+
+        // Current encoding.
+        private Encoding _encoding;
+        private FileInfo _fileConc;
+
         // Files that are used as buffers for operation.
         private FileInfo _fileCopy;
         private FileInfo _fileMove;
-        private FileInfo _fileConc;
 
         // Path of file from buffer. (Can be removed)
         private string _prevPath;
 
-        private readonly string[] _readableExtensions = { "txt", "cs", "cpp", "py", "js", "html", "css", "rtf" };
-
-        // Current encoding.
-        private Encoding _encoding;
+        // Current folder path.
+        private DirectoryInfo _root;
 
         /// <summary> Default ctor. </summary>
         public FileManager()
@@ -67,17 +94,16 @@ namespace FileManager
         }
 
         /// <summary>
-        /// Method that initiates manager. 
+        ///     Method that initiates manager.
         /// </summary>
         public void Init()
         {
-
             _drawer = new Drawer();
             _drawer.DrawIntro();
-
+            
             //Choose the language
             string language;
-            ConsoleKeyInfo data = Console.ReadKey();
+            var data = Console.ReadKey();
             switch (data.Key)
             {
                 case ConsoleKey.D1:
@@ -91,23 +117,23 @@ namespace FileManager
                     Exit();
                     return;
             }
+            
             _drawer.SetLanguage(language);
-
             Menu();
         }
-        
+
         /// <summary>
-        /// Method that launches main menu.
+        ///     Method that launches main menu.
         /// </summary>
         private void Menu()
         {
-            bool check = true;
+            var check = true;
             do
             {
                 //TODO: fix bug: when return from the disk - top of the screen is ruined
                 _drawer.DrawMainMenu();
 
-                ConsoleKeyInfo data = Console.ReadKey(true);
+                var data = Console.ReadKey(true);
                 switch (data.KeyChar)
                 {
                     // Choose disk.
@@ -116,8 +142,7 @@ namespace FileManager
                         break;
                     // Read instruction.
                     case '2':
-                        uint n;
-                        string sizeStr = Console.ReadLine();
+                        Instruction();
                         break;
                     // Exit.
                     case '3':
@@ -127,23 +152,27 @@ namespace FileManager
                         // If any other key is pressed - rerun menu.
                 }
             } while (check);
-
         }
-        
+
+        private void Instruction()
+        {
+            _drawer.DrawInstruction();
+        }
+
         /// <summary>
-        /// Method that chooses disk and starts manager.
+        ///     Method that chooses disk and starts manager.
         /// </summary>
         private void ChooseDisk()
         {
             var drives = DriveInfo.GetDrives();
-            bool check = false;
+            var check = false;
             ConsoleKeyInfo key;
             do
             {
                 _drawer.DrawDriveChooser(drives);
 
                 key = Console.ReadKey(true);
-                if (uint.TryParse(key.KeyChar.ToString(), out uint result) && result != 0 && result <= drives.Length ||
+                if (uint.TryParse(key.KeyChar.ToString(), out var result) && result != 0 && result <= drives.Length ||
                     key.Key == ConsoleKey.Escape)
                 {
                     if (key.Key == ConsoleKey.Escape)
@@ -152,12 +181,12 @@ namespace FileManager
                     _root = drives[result - 1].RootDirectory;
                 }
             } while (!check);
-            RunManager(false);
 
+            RunManager(false);
         }
 
         /// <summary>
-        /// Method that prints all folders and allows user to choose an option.
+        ///     Method that prints all folders and allows user to choose an option.
         /// </summary>
         /// <param name="exit"> bool value for recursion </param>
         private void RunManager(bool exit)
@@ -170,15 +199,15 @@ namespace FileManager
             var dirs = new List<string>();
             var files = new List<string>();
 
-            int currentActive = 0;
+            var currentActive = 0;
             var items = UpdateItems(currentDir, ref files, ref dirs, ref currentActive);
 
             // Infinite cycle, until Escape is pressed.
-            while(true)
+            while (true)
             {
                 DrawMainView(items, currentDir);
 
-                ConsoleKeyInfo key = Console.ReadKey();
+                var key = Console.ReadKey();
                 switch (key.Key)
                 {
                     // Go down 1 item.
@@ -246,8 +275,8 @@ namespace FileManager
         }
 
         /// <summary>
-        /// Method draws main menu of manager with options.
-        /// If any buffer is filled - it shows info about it.
+        ///     Method draws main menu of manager with options.
+        ///     If any buffer is filled - it shows info about it.
         /// </summary>
         /// <param name="items"> dirs and files </param>
         /// <param name="currentDir"> iterator over items </param>
@@ -262,9 +291,9 @@ namespace FileManager
             else
                 _drawer.DrawDirFileSelection(items, currentDir);
         }
-        
+
         /// <summary>
-        /// Method that empties buffers.
+        ///     Method that empties buffers.
         /// </summary>
         private void RevertOptions()
         {
@@ -273,10 +302,10 @@ namespace FileManager
             _fileMove = null;
             _fileCopy = null;
         }
-        
+
         /// <summary>
-        /// Method that does concatenation.
-        /// If _fileConc is null it saves current file to buffer
+        ///     Method that does concatenation.
+        ///     If _fileConc is null it saves current file to buffer
         ///     else it concatenates buffered file(in _fileConc) with current
         ///     and saves it to buffered file.
         /// </summary>
@@ -290,6 +319,7 @@ namespace FileManager
                 _drawer.DrawError(new Exception("move"), items[currentItem].Content);
                 return;
             }
+
             if (_fileCopy != null)
             {
                 _drawer.DrawError(new Exception("copy"), items[currentItem].Content);
@@ -305,15 +335,17 @@ namespace FileManager
                     _drawer.DrawConcOk(items[currentItem].Content);
                 }
                 else
+                {
                     _drawer.DrawError(new FolderFileException(), items[currentItem].Content);
+                }
             }
             else
             {
                 try
                 {
                     var sr = _fileConc.AppendText();
-                    string path = Path.Combine(_root.FullName, items[currentItem].Content);
-                    string text = File.ReadAllText(path);
+                    var path = Path.Combine(_root.FullName, items[currentItem].Content);
+                    var text = File.ReadAllText(path);
                     sr.Write(text);
                     sr.Close();
                     _fileConc = null;
@@ -325,12 +357,11 @@ namespace FileManager
                     _fileConc = null;
                     _prevPath = "";
                 }
-
             }
         }
-        
+
         /// <summary>
-        /// Method that creates new file in current folder
+        ///     Method that creates new file in current folder
         ///     and adds text to it.
         /// </summary>
         /// <param name="items"> dirs and files </param>
@@ -338,22 +369,23 @@ namespace FileManager
         private void NewFile(List<Item> items, int currentItem)
         {
             string newPath;
-            bool interrupted = false;
-
+            var interrupted = false;
+            // Get new file name.
             do
             {
                 _drawer.DrawNewFileNameChoose();
-                string fileName = ReadLineWithInterrupt(ref interrupted);
-                newPath = Path.Combine(_root.FullName, fileName ?? String.Empty);
+                var fileName = ReadLineWithInterrupt(ref interrupted);
+                newPath = Path.Combine(_root.FullName, fileName ?? string.Empty);
             } while (!interrupted && (!Path.HasExtension(newPath) ||
-                     !_readableExtensions.Contains(Path.GetExtension(newPath).Remove(0, 1))));
+                                      !_readableExtensions.Contains(Path.GetExtension(newPath).Remove(0, 1))));
 
             // If user pressed Escape - exit
             if (interrupted)
                 return;
 
             interrupted = false;
-            string allText = "";
+            // Input lines to file.
+            var allText = "";
             do
             {
                 _drawer.DrawAddText(Path.GetFileName(newPath), allText);
@@ -370,18 +402,26 @@ namespace FileManager
             }
         }
 
+
+        /// <summary>
+        ///     Function that reads line with possible interruption from user.
+        /// </summary>
+        /// <param name="flag"> if was interrupted return true </param>
+        /// <param name="interrupt"> key that is checked as interruptor </param>
+        /// <returns></returns>
         private string ReadLineWithInterrupt(ref bool flag, ConsoleKey interrupt = ConsoleKey.Escape)
         {
-            string line = "";
+            var line = "";
             while (true)
             {
-                ConsoleKeyInfo key = Console.ReadKey(true);
+                var key = Console.ReadKey(true);
                 if (key.Key == interrupt || key.Key == ConsoleKey.Enter)
                 {
                     if (key.Key == interrupt)
                         flag = true;
                     return line;
                 }
+
                 if (key.Key == ConsoleKey.Backspace)
                 {
                     try
@@ -401,23 +441,32 @@ namespace FileManager
                 {
                     line += key.KeyChar;
                     Console.Write(key.KeyChar);
-
                 }
             }
         }
 
+        /// <summary>
+        ///     Method that moves file from one location to another.
+        ///     If _fileMove is null it saves current file to buffer
+        ///     else it moves file from buffer to destination folder.
+        /// </summary>
+        /// <param name="items"> dirs and files </param>
+        /// <param name="currentItem"> iterator over items </param>
         private void MoveFile(List<Item> items, int currentItem)
         {
+            // Checks buffers.
             if (_fileCopy != null)
             {
                 _drawer.DrawError(new Exception("copy"), items[currentItem].Content);
                 return;
             }
+
             if (_fileConc != null)
             {
                 _drawer.DrawError(new Exception("conc"), items[currentItem].Content);
                 return;
             }
+
             if (_fileMove == null)
             {
                 if (items[currentItem].IsFile)
@@ -441,9 +490,15 @@ namespace FileManager
                     _fileMove = null;
                     _prevPath = "";
                 }
-
             }
         }
+
+        /// <summary>
+        ///     Method that deletes current file.
+        ///     Can delete only files from _readableExtensions
+        /// </summary>
+        /// <param name="items"> dirs and files </param>
+        /// <param name="currentItem">iterator over items </param>
         private void DeleteFile(List<Item> items, int currentItem)
         {
             if (!items[currentItem].IsFile)
@@ -451,9 +506,9 @@ namespace FileManager
                 _drawer.DrawError(new FolderFileException(), items[currentItem].Content);
                 return;
             }
-            string extension = Path.GetExtension(items[currentItem].Content);
+
+            var extension = Path.GetExtension(items[currentItem].Content);
             if (extension != null && _readableExtensions.Contains(extension.Remove(0, 1)))
-            {
                 try
                 {
                     File.Delete(Path.Combine(_root.FullName, items[currentItem].Content));
@@ -463,11 +518,20 @@ namespace FileManager
                 {
                     _drawer.DrawError(e, items[currentItem].Content);
                 }
-            }
             else
                 _drawer.DrawError(new ExtensionException("File has wrong extension"), items[currentItem].Content);
         }
-        private List<Item> UpdateItems(DirectoryInfo currentDir, ref List<string> files, ref List<string> dirs, ref int currentActive)
+
+        /// <summary>
+        ///     Method that generates items with handling exceptions.
+        /// </summary>
+        /// <param name="currentDir"> current directory </param>
+        /// <param name="files"> files in current directory </param>
+        /// <param name="dirs"> dirs in current directory </param>
+        /// <param name="currentActive"> iterator over items </param>
+        /// <returns> List of items(selectable) </returns>
+        private List<Item> UpdateItems(DirectoryInfo currentDir, ref List<string> files, ref List<string> dirs,
+            ref int currentActive)
         {
             try
             {
@@ -482,18 +546,28 @@ namespace FileManager
             return items;
         }
 
+        /// <summary>
+        ///     Method copies file.
+        ///     If _fileCopy buffer is null - saves current file to it
+        ///     else copies _fileCopy to current folder.
+        /// </summary>
+        /// <param name="items"> dirs and folders </param>
+        /// <param name="currentItem"> iterator over items </param>
         private void CopyFile(List<Item> items, int currentItem)
         {
+            // Check buffers
             if (_fileMove != null)
             {
                 _drawer.DrawError(new Exception("move"), items[currentItem].Content);
                 return;
             }
+
             if (_fileConc != null)
             {
                 _drawer.DrawError(new Exception("conc"), items[currentItem].Content);
                 return;
             }
+
             if (_fileCopy == null)
             {
                 if (items[currentItem].IsFile)
@@ -521,15 +595,18 @@ namespace FileManager
                     _fileCopy = null;
                     _prevPath = "";
                 }
-
             }
         }
+
+        /// <summary>
+        ///     Method changes _encoding.
+        /// </summary>
         private void ChangeEncoding()
         {
             _drawer.DrawChangeEncoding(_encoding.EncodingName);
             do
             {
-                ConsoleKeyInfo key = Console.ReadKey();
+                var key = Console.ReadKey();
                 switch (key.Key)
                 {
                     case ConsoleKey.D1:
@@ -548,28 +625,37 @@ namespace FileManager
                         return;
                 }
             } while (true);
-
         }
 
+        /// <summary>
+        ///     Method that prints current file if file has valid extension.
+        /// </summary>
+        /// <param name="items"> dirs and files </param>
+        /// <param name="currentActive"> iterate over items </param>
         private void ReadFile(List<Item> items, int currentActive)
         {
-            string extension = Path.GetExtension(items[currentActive].Content);
+            var extension = Path.GetExtension(items[currentActive].Content);
             if (_readableExtensions.Contains(extension.Remove(0, 1)))
-            {
                 try
                 {
-                    string[] data = File.ReadAllLines(Path.Combine(_root.FullName, items[currentActive].Content), _encoding);
+                    var data = File.ReadAllLines(Path.Combine(_root.FullName, items[currentActive].Content), _encoding);
                     _drawer.DrawTextFile(data, items[currentActive].Content);
                 }
                 catch (Exception e)
                 {
                     _drawer.DrawError(e, items[currentActive].Content);
                 }
-            }
             else
                 _drawer.DrawError(new ExtensionException("File has wrong extension"), items[currentActive].Content);
         }
 
+        /// <summary>
+        ///     Method decreases currentItem iterator.
+        ///     Used to move ^
+        ///     Also provides out of range check.
+        /// </summary>
+        /// <param name="items"> dirs and files </param>
+        /// <param name="currentActive"> iterator over items </param>
         private static void DecreaseIterator(ref List<Item> items, ref int currentActive)
         {
             items.Find(item => item.Active)?.SetInactive();
@@ -581,6 +667,13 @@ namespace FileManager
             items[currentActive].SetActive();
         }
 
+        /// <summary>
+        ///     Method increases currentItem iterator.
+        ///     Used to move v
+        ///     Also provides out of range check.
+        /// </summary>
+        /// <param name="items"> dirs and files </param>
+        /// <param name="currentActive"> iterator over items </param>
         private static void IncreaseIterator(ref List<Item> items, ref int currentActive)
         {
             items.Find(item => item.Active)?.SetInactive();
@@ -591,9 +684,19 @@ namespace FileManager
             items[currentActive].SetActive();
         }
 
+        /// <summary>
+        ///     Method generates items from dirs and files in current folder.
+        /// </summary>
+        /// <param name="dirs"> directories in current folder </param>
+        /// <param name="files"> files in current folder </param>
+        /// <param name="currentItem">
+        ///     iterator over items is ref, because if last element is deleted
+        ///     iterator should point to prev element.
+        /// </param>
+        /// <returns> List of items(selectable) </returns>
         private static List<Item> GenerateItems(List<string> dirs, List<string> files, ref int currentItem)
         {
-            List<Item> items = new List<Item> { new Item("../") };
+            var items = new List<Item> { new Item("../") };
             items.AddRange(dirs.Select(dir => new Item(Path.GetFileName(dir))));
             items.AddRange(files.Select(file => new Item(Path.GetFileName(file), true)));
 
@@ -605,7 +708,14 @@ namespace FileManager
             return items;
         }
 
-        private static void GenerateDirsAndFiles(DirectoryInfo currentDir, out List<string> files, out List<string> dirs)
+        /// <summary>
+        ///     Method returns files and dirs in current folder.
+        /// </summary>
+        /// <param name="currentDir"> current folder </param>
+        /// <param name="files">files in current folder </param>
+        /// <param name="dirs">dirs in current folder </param>
+        private static void GenerateDirsAndFiles(DirectoryInfo currentDir, out List<string> files,
+            out List<string> dirs)
         {
             dirs = new List<string>(Directory.GetDirectories(currentDir.FullName));
             dirs.RemoveAll(dir => dir.EndsWith(".sys") || Path.GetFileName(dir).StartsWith("$"));
@@ -614,10 +724,12 @@ namespace FileManager
             files.RemoveAll(file => file.EndsWith(".sys") || Path.GetFileName(file).StartsWith("$"));
         }
 
+        /// <summary>
+        ///     Method exits from application.
+        /// </summary>
         private void Exit()
         {
             _drawer.DrawEndingScreen();
         }
-
     }
 }

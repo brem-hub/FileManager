@@ -122,33 +122,66 @@
         {
             return language == "rus" ? "Выход" : "Exit";
         }
-        public string[] Instruction(int n)
+        public string[] DrawInstruction()
         {
             switch (language)
             {
                 case "rus":
                 default:
-                    return new string[] { "В классическом варианте игры компьютер загадывает 4-значное число.",
-                                          "В режиме с N-значным числом, пользователь должен ввести размер числа [1, 10]",
-                                          "Задача пользователя - угадать это число за меньшее число ходов.",
-                                          "После того как игрок вводит своё предположение, игра показывает:",
-                                          "сколько коров - чисел входящих в число, но не стоящих на своих местах",
-                                          "cколько быков - чисел стоящих на своих местах находятся в предложенном числе.",
-                                         $"Всего у игрока {n} ходов.",
-                                          "Удачи!!!",
-                                          "",
-                                          "Нажмите любую клавишу, для возврата в меню"};
+                    return new string[]
+                    {
+                        "FileManager доступен как на Windows, так и на MacOS",
+                        "Функционал FileManager:",
+                        "1) Перемещение по директориям осуществляется с помощью стрелочек ^ и v.",
+                        "2) Для выбора папки или файла используется [Enter].",
+                        "3) Изменяемыми считаются только файлы формата [txt, rtf, cp, py, js, html, css]",
+                        "",
+                        "Функции, доступные пользователю: ",
+                        "[Enter] - выбор файла для просмотра или директории для перехода. Для возврата на",
+                        "уровень наверх используйте `../`.",
+                        "[c] - копирование файла. Для копирования, выберите файл (1) и нажмите [c].",
+                        "файл будет скопирован в буфер. Для сохранения файла в другой директории",
+                        "нажмите [c] ещё раз в нужной директории.",
+                        "[m] - перемещение файла. Для перемещения, выберите файл (1) и нажмите [m].",
+                        "файл будет скопирован в буфер. Для перемещения файла в другую директорию",
+                        "нажмите [m] ещё раз в нужной дериктории.",
+                        "[d] - удаление файла. Для удаления, выберите файл (1) и нажмите [d].",
+                        "файл будет удалён. Если вы удалите перемещаемый файл - вы не сможете переместить его.",
+                        "[n] - создание нового текстового документа. Для создания нового файла нажмите [n] в папке,",
+                        "в которой вы хотите создать файл. Далее введите имя и начните вводить текст в файл.",
+                        "для сохранения текста в файле и выхода из редактора нажмите [Esc].",
+                        "[k] - конкатенация. Для конкатенации, вам нужно будет указать файл, в который запишется",
+                        "результат конкатенации выбранного файла и ещё одного. Далее укажите второй файл с помощью [k].",
+                        "Нажмите любую клавишу, для возврата в меню"
+                    };
                 case "eng":
-                    return new string[] {"In the classic version of the game, the computer makes a 4-digit number.",
-                                         "In N-digit mode, the user must enter the size of the number [1, 10]",
-                                         "The user's task is to guess this number in fewer moves.",
-                                         "After the player enters their guess, the game shows:",
-                                         "how many cows are numbers included in the number, but not standing in their places",
-                                         "how many bulls - numbers standing in their places are in the suggested number.",
-                                        $"The player has {n} total moves.",
-                                         "Good luck!!!",
-                                         "",
-                                         "Press any key to return to the menu"};
+                    return new string[]
+                    {
+                        "FileManager available for both Windows and MacOS",
+                        "The Functionality Of The FileManager:",
+                        "1) moving the directories is performed using the arrows ^ and v.",
+                        "2) To select a folder or file, use [Enter].",
+                        "3) Variable are considered to be the only file format [txt, rtf, cp, py, js, html, css]",
+                        "",
+                        "Functions available to the user: ",
+                        "[Enter] - select a file to view or a directory to navigate to. To return to",
+                        "parent folder, use`../`.",
+                        "[c] - copy the file. To copy, select the file (1) and press [c].",
+                        "The file will be copied to the clipboard. To save the file in a different directory",
+                        "press [c] again in the desired directory.",
+                        "[m] - move the file. To move, select a file (1) and press [m].",
+                        "The file will be copied to the clipboard. To move the file to another directory",
+                        "press [m] again in the desired directory.",
+                        "[d] - delete the file. To delete, select the file (1) and press [d].",
+                        "The file will be deleted. If you delete a moving file, you will not be able to move it.",
+                        "[n] - create a new text document. To create a new file, press [n] in the folder",
+                        "where you want to create the file. Then enter a name and start entering text in the file.",
+                        "To save the text in the file and exit the editor, press [Esc].",
+                        "[k] - concatenation. For concatenation, you will need to specify the file to write to with [k]",
+                        "result of concatenation of the selected file and another one.",
+                        "Next, specify the second file using [k].",
+                        "Press any key to return to the menu"
+                    };
             }
         }
 
@@ -306,6 +339,24 @@
                     };
             }
         }
+        public string[] DrawDeleteOk(string fileName)
+        {
+            switch (language)
+            {
+                case "rus":
+                default:
+                    return new[]
+                    {
+                        $"Файл {fileName} был успешно удалён."
+                    };
+                case "eng":
+                    return new[]
+                    {
+                        $"File {fileName} was successfully deleted."
+                    };
+            }
+        }
+
         public string[] MovedFile(string fileName)
         {
             switch (language)
@@ -325,34 +376,23 @@
                     };
             }
         }
-
-        public string[] DrawDeleteOk(string fileName)
-        {
-            switch (language)
-            {
-                case "rus":
-                default:
-                    return new[]
-                    {
-                        $"Файл {fileName} был успешно удалён."
-                    };
-                case "eng":
-                    return new[]
-                    {
-                        $"File {fileName} was successfully deleted."
-                    };
-            }
-        }
-
         public string[] NewFileName()
         {
             switch (language)
             {
                 case "rus":
                 default:
-                    return new[] { "Введите новое имя файла вместе с расширением." };
+                    return new[]
+                    {
+                        "Введите новое имя файла вместе с расширением.",
+                        "Для отмены нажмите [Esc]"
+                    };
                 case "eng":
-                    return new[] { "Input new file name with extension." };
+                    return new[]
+                    {
+                        "Input new file name with extension.",
+                        "To cancel, press [Esc]"
+                    };
             }
         }
 
